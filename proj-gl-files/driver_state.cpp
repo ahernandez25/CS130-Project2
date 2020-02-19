@@ -39,23 +39,25 @@ void render(driver_state& state, render_type type)
     data_geometry * dg[3];
     switch(type){
         case render_type::triangle : 
-		
+		int tri_count = 0;
 		
 		for(int i = 0; i < state.num_vertices; i = i + state.floats_per_vertex ){
 		    dg[i]->data = new float[MAX_FLOATS_PER_VERTEX]; 
 		    for(int j = 0; j <= state.floats_per_vertex; j++){
 		         dg[i]->data[j] = state.vertex_data[j];
 		    }//end for
-		    
+		    tri_count++;
+		    if((tri_count % 3) == 0){
+			const  data_geometry * in1 = dg[0];
+                	const data_geometry * in2 = dg[1];
+                	const data_geometry * in3 = dg[2];
+
+                	const data_geometry* geo[] = {in1, in2, in3};
+
+                	rasterize_triangle(state, geo);
+		    }
 		}//end fori
 		
-		const  data_geometry * in1 = dg[0];
-		const data_geometry * in2 = dg[1];
-		const data_geometry * in3 = dg[2];
-
-		const data_geometry* geo[] = {in1, in2, in3};
-
-		rasterize_triangle(state, geo);
 	break; 
 	/*case render_type::indexed : 
 	break;
@@ -88,18 +90,26 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 // fragments, calling the fragment shader, and z-buffering.
 void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 {
-    data_vertex vertex;
-	data_geometry * in1 = in[0];
+    data_geometry out[3];
+    data_vertex in2[3];
+    	
+    /*data_geometry * in1 = in[0];
         data_geometry * in2 = in[1];
 	data_geometry * in3 = in[2];
-	data_geometry* geo[] = {&in[0], &in[1], &in[2]};  
+	data_geometry* geo[] = {in[0], in[1], in[2]};*/  
 
-    for(int i = 0; i < state.num_vertices ; i++){
+    for(int i = 0; i < 3; i++){
 	//data_vertex vertex;
-	state.vertex_shader(vertex, &geo[i], state.uniform_data);
-        //in[i]->gl_Position = in[i]->gl_Position / state.image_width;
+	in2[i].data = in[i]->data;
+	state.vertex_shader(in2[i], out[i], state.uniform_data);
+        out[i].gl_Position = in[i]->gl_Position / state.image_width;
     }
-
+    for(int i = 0; i < state.image_width; i++){
+	//i = (0.5)*width*(
+	for(int j = 0; j < state.image_height){
+	    
+	}
+    }
     
 }
 
