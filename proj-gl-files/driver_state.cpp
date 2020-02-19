@@ -88,10 +88,15 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 // fragments, calling the fragment shader, and z-buffering.
 void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 {
-    
+    data_vertex vertex;
+	data_geometry * in1 = in[0];
+        data_geometry * in2 = in[1];
+	data_geometry * in3 = in[2];
+	data_geometry* geo[] = {&in[0], &in[1], &in[2]};  
 
     for(int i = 0; i < state.num_vertices ; i++){
-	vertex_shader(data_vertex, in[i], state.uniform_data);
+	//data_vertex vertex;
+	state.vertex_shader(vertex, &geo[i], state.uniform_data);
         //in[i]->gl_Position = in[i]->gl_Position / state.image_width;
     }
 
