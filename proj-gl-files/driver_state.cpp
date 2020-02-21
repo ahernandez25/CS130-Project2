@@ -104,12 +104,53 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 	state.vertex_shader(in2[i], out[i], state.uniform_data);
         out[i].gl_Position = in[i]->gl_Position / state.image_width;
     }
-    for(int i = 0; i < state.image_width; i++){
-	//i = (0.5)*width*(
-	for(int j = 0; j < state.image_height){
-	    
-	}
-    }
+
+    float areaABC = (0.5)*( ( (out[1].gl_Position[0] * out[2].gl_Position[1]) - (out[2].gl_Position[0] * out[1].gl_Position[1]) ) 
+			-   ( (out[0].gl_Position[0] * out[2].gl_Position[1]) - (out[2].gl_Position[0] * out[0].gl_Position[1]) )  
+			+   ( (out[0].gl_Position[0] * out[1].gl_Position[1]) - (out[1].gl_Position[0] * out[0].gl_Position[1]) )
+ 		    );
+    vec2 v1 = {(0.5) * state.image_width * (out[0].gl_Position[0] + 1), (0.5)* state.image_height * (out[0].gl_Position[1] + 1)  };
+    vec2 v2 = {(0.5) * state.image_width * (out[1].gl_Position[0] + 1), (0.5)* state.image_height * (out[1].gl_Position[1] + 1)  };
+    vec2 v3 = {(0.5) * state.image_width * (out[2].gl_Position[0] + 1), (0.5)* state.image_height * (out[2].gl_Position[1] + 1)  };
+   
+    state.image_color[(state.image_width * static_cast<int>(v1[0])) + (static_cast<int>(v1[1]) % state.image_width)] = make_pixel(255,255,255);
+    state.image_color[(state.image_width * static_cast<int>(v2[0])) + ( static_cast<int>(v2[1]) % state.image_width)] = make_pixel(255,255,255);
+    state.image_color[(state.image_width * static_cast<int>(v3[0])) + (static_cast<int>(v3[1]) % state.image_width)] = make_pixel(255,255,255);
+
+    int i;
+    int j;
+    float alpha = 0;
+    float beta = 0;
+    float gamma = 0;
+    for(int w = 0; w < state.image_width; w++){
+	i = (0.5)*state.image_width*(w + 1);
+	for(int h = 0; h < state.image_height; h++){
+	    j = (0.5)*state.image_height * (h + 1);
+	
+	    //CALCULATE ALPHA
+	    alpha = (0.5)*(  ( (out[1].gl_Position[0]*out[2].gl_Position[1]) - (out[2].gl_Position[0]*out[1].gl_Position[1]) )
+	    		 -   ( (w * out[2].gl_Position[1]) - (out[2].gl_Position[0] * h) )
+			 +   ( (w * out[1].gl_Position[1]) - (out[1].gl_Position[0] * h) ) 
+	     		 ) / areaABC;
+
+	    //CALCULATE BETA 
+	    beta = (0.5)*(  ( (w * out[2].gl_Position[1]) - (out[2].gl_Position[0] * h ) )
+			-   ( (out[0].gl_Position[0] * out[2].gl_Position[1]) - (out[2].gl_Position[0] * out[0].gl_Position[1]) )
+                        +   ( (out[0].gl_Position[0] * h ) - ( w * out[0].gl_Position[1]) )
+			) / areaABC;
+	
+
+	    //CALCULATE GAMMA
+	    gamma = (0.5)*(  ( (out[1].gl_Position[0] * h ) - ( w * out[1].gl_Position[1] ) )
+			 -   ( (out[0].gl_Position[0] * h ) - ( w * out[0].gl_Position[1] ) )
+			 +   ( (out[0].gl_Position[0] * out[0].gl_Position[1] ) - ( out[1].gl_Position[0] * out[0].gl_Position[1]) )
+			) / areaABC;       
+	
+	    if((alpha + beta + gamma) == 1){
+		state.image_color[(state.image_width * j) + (i + state.image_width)] = make_pixel(255,255,255);
+	    }
+	}//end for height
+    }//end for width
     
 }
 
