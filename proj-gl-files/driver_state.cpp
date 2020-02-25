@@ -42,22 +42,9 @@ void render(driver_state& state, render_type type){
 //	data_geometry * dg3;
     	switch(type){
         case render_type::triangle : 
-		/*	
-	    	dg1->data = new float[MAX_FLOATS_PER_VERTEX];     
-		for(int j = 0; j < state.floats_per_vertex; j++)  {
-		    dg1->data[j] = state.vertex_data[j];
-		 }
-	 		
-		dg2->data = new float[MAX_FLOATS_PER_VERTEX];
-                for(int j = state.floats_per_vertex; j < (2 * state.floats_per_vertex); j++){
-                    dg2->data[j] = state.vertex_data[j];
-               	}//end dg2 
+		
+	for(int i = 0; i < state.num_vertices; i = i + 3){	
 
-		dg3->data = new float[MAX_FLOATS_PER_VERTEX];
-		for(int j = (2 * state.floats_per_vertex); j < (3 * state.floats_per_vertex); j++){
-                    dg3->data[j] = state.vertex_data[j];
-		}//end dg3
-		*/
     		data_geometry  out[3];
     		data_vertex dv1;
     		data_vertex dv2;
@@ -69,7 +56,9 @@ void render(driver_state& state, render_type type){
 
 		dv1.data = new float[MAX_FLOATS_PER_VERTEX];
    		for(int j = 0; j < state.floats_per_vertex; j++)  {
-                    dv1.data[j] = state.vertex_data[j];
+                  	dv1.data[j] = state.vertex_data[(i * state.floats_per_vertex) + j]; 
+
+		// dv1.data[j] = state.vertex_data[j];
                 //std::cerr << dv1.data[j] << ", ";
 		 }
 
@@ -77,7 +66,7 @@ void render(driver_state& state, render_type type){
 
 		dv2.data = new float[MAX_FLOATS_PER_VERTEX];
                 for(int j = state.floats_per_vertex ; j < 2 * state.floats_per_vertex ; j++){
-                    dv2.data[j - state.floats_per_vertex] = state.vertex_data[j];
+                    dv2.data[j - state.floats_per_vertex] = state.vertex_data[(i * state.floats_per_vertex) + j];
                
 		//	std::cerr << dv2.data[j - state.floats_per_vertex] << ", ";
 		 }//end dg2
@@ -86,7 +75,7 @@ void render(driver_state& state, render_type type){
 
 		dv3.data = new float[MAX_FLOATS_PER_VERTEX];
                 for(int j = (2 * state.floats_per_vertex ); j < (3 * state.floats_per_vertex ); j++){
-                    dv3.data[j - (2 * state.floats_per_vertex)] = state.vertex_data[j];
+                    dv3.data[j - (2 * state.floats_per_vertex)] = state.vertex_data[(i * state.floats_per_vertex) + j];
                // std::cerr << dv3.data[j - (2 * state.floats_per_vertex)] << ", ";
 		}//end dg3
 //std::cerr << std::endl;
@@ -101,12 +90,12 @@ void render(driver_state& state, render_type type){
 		out[0].data = new float[MAX_FLOATS_PER_VERTEX];
 		out[1].data =  new float[MAX_FLOATS_PER_VERTEX];
 		out[2].data = new float[MAX_FLOATS_PER_VERTEX]; */
-		 for(int i = 0; i < 3; i++){
+	//	 for(int i = 0; i < 3; i++){
     
                   //  state.vertex_shader(inVertexShader[i], out[i], state.uniform_data);
                    
   //             std::cerr << "in loop. i= " << i << "\tout[0][1]: " << out[i].gl_Position[0] <<", " <<  out[i].gl_Position[1] << std::endl; 
-                } 
+          //      } 
 //std::cerr << "after vertex shader\n\n";
 			data_geometry * dg1 = &out[0];
         data_geometry * dg2 = &out[1];
@@ -132,7 +121,7 @@ void render(driver_state& state, render_type type){
 			delete out[2].data;
 		
 		//end fori
-		
+	}	
 	break; 
 	/*case render_type::indexed : 
  * 	break;
