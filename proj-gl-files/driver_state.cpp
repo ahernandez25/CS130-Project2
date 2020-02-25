@@ -1,6 +1,6 @@
 #include "driver_state.h"
 #include <cstring>
-
+#include <iostream>
 driver_state::driver_state()
 {
 }
@@ -34,39 +34,114 @@ int size = width*height;
 //                           to a triangle.  These numbers are indices into vertex_data.
 //   render_type::fan -      The vertices are to be interpreted as a triangle fan.
 //   render_type::strip -    The vertices are to be interpreted as a triangle strip.
-void render(driver_state& state, render_type type)
-{
-    data_geometry * dg[3];
-    switch(type){
+void render(driver_state& state, render_type type){
+
+
+//	data_geometry * dg1;
+//	data_geometry * dg2;
+//	data_geometry * dg3;
+    	switch(type){
         case render_type::triangle : 
-		int tri_count = 0;
+		/*	
+	    	dg1->data = new float[MAX_FLOATS_PER_VERTEX];     
+		for(int j = 0; j < state.floats_per_vertex; j++)  {
+		    dg1->data[j] = state.vertex_data[j];
+		 }
+	 		
+		dg2->data = new float[MAX_FLOATS_PER_VERTEX];
+                for(int j = state.floats_per_vertex; j < (2 * state.floats_per_vertex); j++){
+                    dg2->data[j] = state.vertex_data[j];
+               	}//end dg2 
+
+		dg3->data = new float[MAX_FLOATS_PER_VERTEX];
+		for(int j = (2 * state.floats_per_vertex); j < (3 * state.floats_per_vertex); j++){
+                    dg3->data[j] = state.vertex_data[j];
+		}//end dg3
+		*/
+    		data_geometry  out[3];
+    		data_vertex dv1;
+    		data_vertex dv2;
+    		data_vertex dv3;
+	
+		out[0].data = new float[MAX_FLOATS_PER_VERTEX];
+                out[1].data =  new float[MAX_FLOATS_PER_VERTEX];
+                out[2].data = new float[MAX_FLOATS_PER_VERTEX];
+
+		dv1.data = new float[MAX_FLOATS_PER_VERTEX];
+   		for(int j = 0; j < state.floats_per_vertex; j++)  {
+                    dv1.data[j] = state.vertex_data[j];
+                //std::cerr << dv1.data[j] << ", ";
+		 }
+
+		state.vertex_shader(dv1, out[0], state.uniform_data);
+
+		dv2.data = new float[MAX_FLOATS_PER_VERTEX];
+                for(int j = state.floats_per_vertex ; j < 2 * state.floats_per_vertex ; j++){
+                    dv2.data[j - state.floats_per_vertex] = state.vertex_data[j];
+               
+		//	std::cerr << dv2.data[j - state.floats_per_vertex] << ", ";
+		 }//end dg2
+
+		state.vertex_shader(dv2, out[1], state.uniform_data);
+
+		dv3.data = new float[MAX_FLOATS_PER_VERTEX];
+                for(int j = (2 * state.floats_per_vertex ); j < (3 * state.floats_per_vertex ); j++){
+                    dv3.data[j - (2 * state.floats_per_vertex)] = state.vertex_data[j];
+               // std::cerr << dv3.data[j - (2 * state.floats_per_vertex)] << ", ";
+		}//end dg3
+//std::cerr << std::endl;
+		state.vertex_shader(dv3, out[2], state.uniform_data);
+    
+                data_vertex inVertexShader[3] = {dv1, dv2, dv3};
+    		
+    
+                //std::cerr << "\n\nbefore vertex shader: \n\n";
+               
+/*
+		out[0].data = new float[MAX_FLOATS_PER_VERTEX];
+		out[1].data =  new float[MAX_FLOATS_PER_VERTEX];
+		out[2].data = new float[MAX_FLOATS_PER_VERTEX]; */
+		 for(int i = 0; i < 3; i++){
+    
+                  //  state.vertex_shader(inVertexShader[i], out[i], state.uniform_data);
+                   
+  //             std::cerr << "in loop. i= " << i << "\tout[0][1]: " << out[i].gl_Position[0] <<", " <<  out[i].gl_Position[1] << std::endl; 
+                } 
+//std::cerr << "after vertex shader\n\n";
+			data_geometry * dg1 = &out[0];
+        data_geometry * dg2 = &out[1];
+        data_geometry * dg3 = &out[2];
+			const data_geometry* out2[] = {dg1, dg2, dg3};
+  			//const  data_geometry * in1 = out[1];
+                	//const data_geometry * in2 = out[2];
+                	//const data_geometry * in3 = out[3];
+
+                	//const data_geometry* geo[] = {out2[0], out2[1], out2[2]};
+//		for(int i = 0; i < 3; i++){
+
+                  
+  //                std::cerr << "in loop. i= " << i << "\tout[0][1]: " << out2[i]->gl_Position[0] <<", " <<  out2[i]->gl_Position[1] << std::endl;
+    //           }
+                	rasterize_triangle(state, out2);
+
+			delete dv1.data;
+			delete dv2.data;
+			delete dv3.data;
+			delete out[0].data;
+			delete out[1].data;
+			delete out[2].data;
 		
-		for(int i = 0; i < state.num_vertices; i = i + state.floats_per_vertex ){
-		    dg[i]->data = new float[MAX_FLOATS_PER_VERTEX]; 
-		    for(int j = 0; j <= state.floats_per_vertex; j++){
-		         dg[i]->data[j] = state.vertex_data[j];
-		    }//end for
-		    tri_count++;
-		    if((tri_count % 3) == 0){
-			const  data_geometry * in1 = dg[0];
-                	const data_geometry * in2 = dg[1];
-                	const data_geometry * in3 = dg[2];
-
-                	const data_geometry* geo[] = {in1, in2, in3};
-
-                	rasterize_triangle(state, geo);
-		    }
-		}//end fori
+		//end fori
 		
 	break; 
 	/*case render_type::indexed : 
-	break;
-	case render_type::fan : 
-	break;
-	case render_type::strip : 
-	break;*/
+ * 	break;
+ * 		case render_type::fan : 
+ * 			break;
+ * 				case render_type::strip : 
+ * 					break;*/
 	
-	}//end switch	 
+	}//end switch	  
 }
 
 
@@ -90,64 +165,67 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 // fragments, calling the fragment shader, and z-buffering.
 void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 {
-    data_geometry out[3];
-    data_vertex in2[3];
-    	
-    /*data_geometry * in1 = in[0];
-        data_geometry * in2 = in[1];
-	data_geometry * in3 = in[2];
-	data_geometry* geo[] = {in[0], in[1], in[2]};*/  
+	
+	vec4 vertices[3];
+	for(int k = 0; k < 3; k++)
+       		vertices[k] = in[k]->gl_Position / in[k]->gl_Position[3];
 
-    for(int i = 0; i < 3; i++){
-	//data_vertex vertex;
-	in2[i].data = in[i]->data;
-	state.vertex_shader(in2[i], out[i], state.uniform_data);
-        out[i].gl_Position = in[i]->gl_Position / state.image_width;
-    }
 
-    float areaABC = (0.5)*( ( (out[1].gl_Position[0] * out[2].gl_Position[1]) - (out[2].gl_Position[0] * out[1].gl_Position[1]) ) 
-			-   ( (out[0].gl_Position[0] * out[2].gl_Position[1]) - (out[2].gl_Position[0] * out[0].gl_Position[1]) )  
-			+   ( (out[0].gl_Position[0] * out[1].gl_Position[1]) - (out[1].gl_Position[0] * out[0].gl_Position[1]) )
- 		    );
-    vec2 v1 = {(0.5) * state.image_width * (out[0].gl_Position[0] + 1), (0.5)* state.image_height * (out[0].gl_Position[1] + 1)  };
-    vec2 v2 = {(0.5) * state.image_width * (out[1].gl_Position[0] + 1), (0.5)* state.image_height * (out[1].gl_Position[1] + 1)  };
-    vec2 v3 = {(0.5) * state.image_width * (out[2].gl_Position[0] + 1), (0.5)* state.image_height * (out[2].gl_Position[1] + 1)  };
+
+ /*   	float areaABC = (0.5)*( ( (vertices[1][0] * vertices[2][1]) - ( vertices[2][0] *  vertices[1][1]) ) 
+			  -   ( ( vertices[0][0] *  vertices[2][1]) - ( vertices[2][0] *  vertices[0][1]) )  
+			  +   ( ( vertices[0][0] *  vertices[1][1]) - ( vertices[1][0] *  vertices[0][1]) )
+ 		   		 );
+*/
+
+
+//	std::cerr << "areaABC = " << areaABC << std::endl;
+    vec2 v1 = {((0.5) * state.image_width * ( vertices[0][0] + 1)) - 0.5, ((0.5)* state.image_height * ( vertices[0][1] + 1)) - 0.5  };
+    vec2 v2 = {((0.5) * state.image_width * ( vertices[1][0] + 1)) - 0.5 ,( (0.5)* state.image_height * ( vertices[1][1] + 1)) - 0.5 };
+    vec2 v3 = {((0.5) * state.image_width * ( vertices[2][0] + 1)) - 0.5 ,( (0.5)* state.image_height * ( vertices[2][1] + 1) ) - 0.5  };
+  
+//std::cerr << "\nafter created vectors\n\n";
+ 
+float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
+                          -   ( ( v1[0] *  v3[1]) - ( v3[0] *  v1[1]) )
+                          +   ( ( v1[0] *  v2[1]) - ( v2[0] *  v1[1]) )
+                                 );
+
+
+    state.image_color[(static_cast<int>(v1[0])) + (static_cast<int>(v1[1]) * state.image_width)] = make_pixel(255,255,255);
+    state.image_color[(static_cast<int>(v2[0])) + ( static_cast<int>(v2[1]) * state.image_width)] = make_pixel(255,255,255);
+    state.image_color[(static_cast<int>(v3[0])) + (static_cast<int>(v3[1]) * state.image_width)] = make_pixel(255,255,255);
+//std::cerr << "after image color set\n\n";
    
-    state.image_color[(state.image_width * static_cast<int>(v1[0])) + (static_cast<int>(v1[1]) % state.image_width)] = make_pixel(255,255,255);
-    state.image_color[(state.image_width * static_cast<int>(v2[0])) + ( static_cast<int>(v2[1]) % state.image_width)] = make_pixel(255,255,255);
-    state.image_color[(state.image_width * static_cast<int>(v3[0])) + (static_cast<int>(v3[1]) % state.image_width)] = make_pixel(255,255,255);
-
-    int i;
-    int j;
     float alpha = 0;
     float beta = 0;
-    float gamma = 0;
+    float gamma = 0; 
     for(int w = 0; w < state.image_width; w++){
-	i = (0.5)*state.image_width*(w + 1);
+	
+
 	for(int h = 0; h < state.image_height; h++){
-	    j = (0.5)*state.image_height * (h + 1);
 	
 	    //CALCULATE ALPHA
-	    alpha = (0.5)*(  ( (out[1].gl_Position[0]*out[2].gl_Position[1]) - (out[2].gl_Position[0]*out[1].gl_Position[1]) )
-	    		 -   ( (w * out[2].gl_Position[1]) - (out[2].gl_Position[0] * h) )
-			 +   ( (w * out[1].gl_Position[1]) - (out[1].gl_Position[0] * h) ) 
+	    alpha = (0.5)*(  ( ( v2[0] *  v3[1]) - (v3[0] * v2[1]) )
+	    		 -   ( (w * v3[1]) - (v3[0] * h) )
+			 +   ( (w * v2[1]) - (v2[0] * h) ) 
 	     		 ) / areaABC;
 
 	    //CALCULATE BETA 
-	    beta = (0.5)*(  ( (w * out[2].gl_Position[1]) - (out[2].gl_Position[0] * h ) )
-			-   ( (out[0].gl_Position[0] * out[2].gl_Position[1]) - (out[2].gl_Position[0] * out[0].gl_Position[1]) )
-                        +   ( (out[0].gl_Position[0] * h ) - ( w * out[0].gl_Position[1]) )
+	    beta = (0.5)*(  ( (w * v3[1]) - (v3[0] * h ) )
+			-   ( (v1[0] * v3[1]) - (v3[0] * v1[1]) )
+                        +   ( (v1[0] * h ) - ( w * v1[1]) )
 			) / areaABC;
 	
 
 	    //CALCULATE GAMMA
-	    gamma = (0.5)*(  ( (out[1].gl_Position[0] * h ) - ( w * out[1].gl_Position[1] ) )
-			 -   ( (out[0].gl_Position[0] * h ) - ( w * out[0].gl_Position[1] ) )
-			 +   ( (out[0].gl_Position[0] * out[0].gl_Position[1] ) - ( out[1].gl_Position[0] * out[0].gl_Position[1]) )
+	    gamma = (0.5)*(  ( (v2[0] * h ) - ( w * v2[1] ) )
+			 -   ( (v1[0] * h ) - ( w * v1[1] ) )
+			 +   ( (v1[0] * v2[1] ) - ( v2[0] * v1[1]) )
 			) / areaABC;       
-	
-	    if((alpha + beta + gamma) == 1){
-		state.image_color[(state.image_width * j) + (i + state.image_width)] = make_pixel(255,255,255);
+//std::cerr << "\nalpha : " << alpha << "\tbeta: " << beta << "\tgamma: " << gamma;	
+	    if((alpha >= 0) && (beta >= 0) && (gamma >= 0)){
+		state.image_color[(state.image_width * h) + (w)] = make_pixel(255,255,255);
 	    }
 	}//end for height
     }//end for width
