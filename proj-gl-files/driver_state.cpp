@@ -57,9 +57,7 @@ void render(driver_state& state, render_type type){
 		dv1.data = new float[MAX_FLOATS_PER_VERTEX];
    		for(int j = 0; j < state.floats_per_vertex; j++)  {
                   	dv1.data[j] = state.vertex_data[(i * state.floats_per_vertex) + j]; 
-
-		// dv1.data[j] = state.vertex_data[j];
-                //std::cerr << dv1.data[j] << ", ";
+			out[0].data[j] = state.vertex_data[(i * state.floats_per_vertex) + j];
 		 }
 
 		state.vertex_shader(dv1, out[0], state.uniform_data);
@@ -67,8 +65,7 @@ void render(driver_state& state, render_type type){
 		dv2.data = new float[MAX_FLOATS_PER_VERTEX];
                 for(int j = state.floats_per_vertex ; j < 2 * state.floats_per_vertex ; j++){
                     dv2.data[j - state.floats_per_vertex] = state.vertex_data[(i * state.floats_per_vertex) + j];
-               
-		//	std::cerr << dv2.data[j - state.floats_per_vertex] << ", ";
+                    out[1].data[j - state.floats_per_vertex] = state.vertex_data[(i * state.floats_per_vertex) + j];
 		 }//end dg2
 
 		state.vertex_shader(dv2, out[1], state.uniform_data);
@@ -76,7 +73,7 @@ void render(driver_state& state, render_type type){
 		dv3.data = new float[MAX_FLOATS_PER_VERTEX];
                 for(int j = (2 * state.floats_per_vertex ); j < (3 * state.floats_per_vertex ); j++){
                     dv3.data[j - (2 * state.floats_per_vertex)] = state.vertex_data[(i * state.floats_per_vertex) + j];
-               // std::cerr << dv3.data[j - (2 * state.floats_per_vertex)] << ", ";
+                    out[2].data[j - (2 * state.floats_per_vertex)] = state.vertex_data[(i * state.floats_per_vertex) + j];
 		}//end dg3
 //std::cerr << std::endl;
 		state.vertex_shader(dv3, out[2], state.uniform_data);
@@ -173,7 +170,7 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
     vec2 v2 = {((0.5) * state.image_width * ( vertices[1][0] + 1)) - 0.5 ,( (0.5)* state.image_height * ( vertices[1][1] + 1)) - 0.5 };
     vec2 v3 = {((0.5) * state.image_width * ( vertices[2][0] + 1)) - 0.5 ,( (0.5)* state.image_height * ( vertices[2][1] + 1) ) - 0.5  };
   
-//std::cerr << "\nafter created vectors\n\n";
+//std::cerr << std::endl <<  state.floats_per_vertex << std::endl;
  
 float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
                           -   ( ( v1[0] *  v3[1]) - ( v3[0] *  v1[1]) )
@@ -214,7 +211,25 @@ float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
 			) / areaABC;       
 //std::cerr << "\nalpha : " << alpha << "\tbeta: " << beta << "\tgamma: " << gamma;	
 	    if((alpha >= 0) && (beta >= 0) && (gamma >= 0)){
-		state.image_color[(state.image_width * h) + (w)] = make_pixel(255,255,255);
+		data_fragment df;
+                df.data = new float[MAX_FLOATS_PER_VERTEX];
+		for(int i = 0; i < state.floats_per_vertex; i++){
+		    switch(state.interp_rules[i]){        
+		        case(interp_type::invalid) : 
+                        break;
+                        case(interp_type::flat) :  df.data[i] = in[0]->data[i];
+		        break;
+                        case(interp_type::smooth) : df.data[i] = (in[0]->data[i] * alpha) + (in[1]->data[i] * beta) + (in[2]->data[i] * gamma);
+			break;
+                        case(interp_type::noperspective) :
+			break;
+ 
+
+		    }//end switch	
+		}
+		data_output out;
+		state.fragment_shader(df, out, state.uniform_data );
+		state.image_color[(state.image_width * h) + (w)] = make_pixel(255 * out.output_color[0], 255 * out.output_color[1] ,255 * out.output_color[2]);
 	    }
 	}//end for height
     }//end for width
