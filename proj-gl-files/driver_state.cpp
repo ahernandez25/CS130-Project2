@@ -1,6 +1,8 @@
 #include "driver_state.h"
 #include <cstring>
 #include <iostream>
+#include <limits>
+
 driver_state::driver_state()
 {
 }
@@ -22,9 +24,10 @@ void initialize_render(driver_state& state, int width, int height)
     state.image_depth = new float[width*height];
 
 int size = width*height;
-	for(int i = 0; i < size; i++) 
+	for(int i = 0; i < size; i++){ 
     		state.image_color[i] = make_pixel(0,0,0);
-   
+   		state.image_depth[i] = std::numeric_limits<float>::max();
+	}
 }
 
 // This function will be called to render the data that has been stored in this class.
@@ -165,12 +168,12 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 */
 
 
-//	std::cerr << "areaABC = " << areaABC << std::endl;
+
     vec2 v1 = {((0.5) * state.image_width * ( vertices[0][0] + 1)) - 0.5, ((0.5)* state.image_height * ( vertices[0][1] + 1)) - 0.5  };
     vec2 v2 = {((0.5) * state.image_width * ( vertices[1][0] + 1)) - 0.5 ,( (0.5)* state.image_height * ( vertices[1][1] + 1)) - 0.5 };
     vec2 v3 = {((0.5) * state.image_width * ( vertices[2][0] + 1)) - 0.5 ,( (0.5)* state.image_height * ( vertices[2][1] + 1) ) - 0.5  };
   
-//std::cerr << std::endl <<  state.floats_per_vertex << std::endl;
+
  
 float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
                           -   ( ( v1[0] *  v3[1]) - ( v3[0] *  v1[1]) )
@@ -226,11 +229,22 @@ float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
  
 
 		    }//end switch	
-		}
-		data_output out;
-		state.fragment_shader(df, out, state.uniform_data );
-		state.image_color[(state.image_width * h) + (w)] = make_pixel(255 * out.output_color[0], 255 * out.output_color[1] ,255 * out.output_color[2]);
-	    }
+		}//end for switch
+		    data_output out;
+		    state.fragment_shader(df, out, state.uniform_data ); 
+		
+		    float newz;
+		   
+		        newz =  (alpha * vertices[0][2]) + (beta * vertices[1][2]) + (gamma * vertices[2][2]);
+			    if( newz < state.image_depth[(state.image_width * h) + (w)] ){
+			  	state.image_color[(state.image_width * h) + (w)] = make_pixel(255 * out.output_color[0], 255 * out.output_color[1] ,255 * out.output_color[2]);
+			state.image_depth[(state.image_width * h) + (w)] = newz;			
+			    }//end if 
+		    
+		}//end check if in triangle
+
+		//state.image_color[(state.image_width * h) + (w)] = make_pixel(255 * out.output_color[0], 255 * out.output_color[1] ,255 * out.output_color[2]);
+	    
 	}//end for height
     }//end for width
     
