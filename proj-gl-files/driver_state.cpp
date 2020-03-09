@@ -140,13 +140,46 @@ void render(driver_state& state, render_type type){
 // simply pass the call on to rasterize_triangle.
 void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 {
+    vec4 v1 = in[0]->gl_Position;
+    vec4 v2 = in[1]->gl_Position;
+    vec4 v3 = in[2]->gl_Position;
+
+   
+
     if(face==6)
     {
         rasterize_triangle(state, in);
         return;
+    
+    }else if(face == 5)
+    {
+	if((v1[2] < -v1[3]) && (v2[2] < -v2[3]) && (v3[2] < -v3[3]) ){
+            clip_triangle(state, in, face+1);                                                                                                                                                                              }
+         
+    }else if(face == 4){
+	if((v1[2] < v1[3]) && (v2[2] < v2[3]) && (v3[2] < v3[3]) ){
+            clip_triangle(state, in, face+1);                                                                                                                                                                              }
+         
+    }else if (face == 3) {
+	if((v1[1] < -v1[3]) && (v2[1] < -v2[3]) && (v3[1] < -v3[3]) ){
+            clip_triangle(state, in, face+1);                                                                                                                                                                              }
+         
+    }else if (face == 2) {
+	if((v1[1] < v1[3]) && (v2[1] < v2[3]) && (v3[1] < v3[3]) ){
+            clip_triangle(state, in, face+1);                                                                                                                                                                              }
+         
+    }else if (face == 1) {
+        if((v1[0] < -v1[3]) && (v2[0] < -v2[3]) && (v3[0] < -v3[3]) ){
+            clip_triangle(state, in, face+1);                                                                                                                                                                              }
+         
+    } else if (face == 0){
+	if((v1[0] < v1[3]) && (v2[0] < v2[3]) && (v3[0] < v3[3]) ){
+	    clip_triangle(state, in, face+1);
+	}
+        
     }
-    std::cout<<"TODO: implement clipping. (The current code passes the triangle through without clipping them.)"<<std::endl;
-    clip_triangle(state,in,face+1);
+    //std::cout<<"TODO: implement clipping. (The current code passes the triangle through without clipping them.)"<<std::endl;
+    //clip_triangle(state,in,face+1);
 }
 
 // Rasterize the triangle defined by the three vertices in the "in" array.  This
