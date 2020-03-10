@@ -156,7 +156,10 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
     else if((sign * v1[index] > v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] > v3[3])){
 
     }
-    else {
+    else if( ((sign * v1[index] <= v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] > v3[3]))  ||
+	     ((sign * v1[index] > v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] > v3[3]) ) ||
+	     ((sign * v1[index] > v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] <= v3[3])) ) 
+    {
 	if( (sign * v1[index] <= v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] > v3[3])  ){
 		insideIndex = 0;
 		
@@ -167,8 +170,18 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
         else if((sign * v1[index] > v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] <= v3[3])){
 		insideIndex = 2;
    	}//v3 inside
+ 	
+        float gamma1;
+	gamma1 = ( in[insideIndex]->gl_Position[index] - in[insideIndex]->gl_Position[3]   ) / 
+	( (in[insideIndex]->gl_Position[index] - in[insideIndex]->gl_Position[3]) - (in[insideIndex + 1 % 3]->gl_Position[3] - in[insideIndex + 1 % 3]->gl_Position[index]  ) ) ;
+
+	float gamma2;
 	
+
     }
+
+    
+
 
     /*
     switch(face / 2){
@@ -283,8 +296,12 @@ float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
 		        case(interp_type::invalid) : 
                         break;
                         case(interp_type::flat) :  df.data[i] = in[0]->data[i];
-		        break;
-                        case(interp_type::smooth) : 
+			break;
+			case(interp_type::smooth) : float pAlpha, pBeta, pGamma;
+						pAlpha = (alpha / in[0]->gl_Position[3]) / ( (alpha / in[0]->gl_Position[3]) + (beta / in[1]->gl_Position[3]) + (gamma / in[2]->gl_Position[3]) );
+						pBeta =  (beta / in[1]->gl_Position[3]) / ( (alpha / in[0]->gl_Position[3]) + (beta / in[1]->gl_Position[3]) + (gamma / in[2]->gl_Position[3]) );
+						pGamma = (gamma / in[2]->gl_Position[3]) / ( (alpha / in[0]->gl_Position[3]) + (beta / in[1]->gl_Position[3]) + (gamma / in[2]->gl_Position[3]) );
+						df.data[i] = (in[0]->data[i] * pAlpha) + (in[1]->data[i] * pBeta) + (in[2]->data[i] * pGamma);
 			break;
                         case(interp_type::noperspective) : df.data[i] = (in[0]->data[i] * alpha) + (in[1]->data[i] * beta) + (in[2]->data[i] * gamma);
 			break;
