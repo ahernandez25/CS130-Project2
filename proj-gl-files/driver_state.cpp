@@ -176,12 +176,64 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 	( (in[insideIndex]->gl_Position[index] - in[insideIndex]->gl_Position[3]) - (in[insideIndex + 1 % 3]->gl_Position[3] - in[insideIndex + 1 % 3]->gl_Position[index]  ) ) ;
 
 	float gamma2;
+	gamma2 = ( in[insideIndex]->gl_Position[index] - in[insideIndex]->gl_Position[3]   ) /
+		( (in[insideIndex]->gl_Position[index] - in[insideIndex]->gl_Position[3]) - (in[insideIndex + 2 % 3]->gl_Position[3] - in[insideIndex + 2 % 3]->gl_Position[index]  ) );	
+
+     	data_geometry *m;
+	m->gl_Position = ( (1-gamma1) * in[insideIndex]->gl_Position ) + ( (gamma1 * in[insideIndex + 1 % 3]->gl_Position)  );
+  	
+	//populate M->data
+	for(int j = 0; j < state.floats_per_vertex; j++)  {
+                  //	m->data[j] = in[insideIndex]; 
+	}
+
 	
+	data_geometry * n;
+	n->gl_Position = ( (1 - gamma2) * in[insideIndex]->gl_Position ) + ( gamma2 * in[insideIndex + 1 % 3]->gl_Position );
 
-    }
+    	//populate n->data
+    	for(int j = 0; j < state.floats_per_vertex; j++){
+	    
+	}
 
-    
+    } //end 1 vertex inside 
+    else{
+	if( ((sign * v1[index] <= v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] > v3[3]))  )
+	{
+		outsideIndex = 2;
+	}//v1 and v2 inside
+	else if ( ((sign * v1[index] > v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] <= v3[3]))  )
+	{
+		outsideIndex = 1;
+	}//v2 and v3 inside
+	else if( ((sign * v1[index] <= v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] <= v3[3]))  )
+	{
+		outsideIndex = 0;
+	}//v1 and v3 inside 
 
+	float gamma1;
+        gamma1 = ( in[outsideIndex + 1 % 3]->gl_Position[index] - in[outsideIndex + 1 % 3]->gl_Position[3]   ) /
+        ( (in[outsideIndex + 1 % 3]->gl_Position[index] - in[outsideIndex + 1 % 3]->gl_Position[3]) - (in[outsideIndex]->gl_Position[3] - in[outsideIndex]->gl_Position[index]  ) ) ;
+
+        float gamma2;
+        gamma2 = ( in[outsideIndex + 2 % 3]->gl_Position[index] - in[outsideIndex + 2 % 3]->gl_Position[3]   ) /
+                ( (in[outsideIndex + 2 % 3]->gl_Position[index] - in[outsideIndex + 2 % 3]->gl_Position[3]) - (in[outsideIndex]->gl_Position[3] - in[outsideIndex]->gl_Position[index]  ) );
+  
+        data_geometry *m;
+        m->gl_Position = ( (1-gamma1) * in[outsideIndex + 1 % 3]->gl_Position ) + ( (gamma1 * in[outsideIndex]->gl_Position)  );
+
+        // populate M->data
+        for(int j = 0; j < state.floats_per_vertex; j++)  {
+        //    m->data[j] = in[insideIndex];
+        }
+        
+        data_geometry * n;
+        n->gl_Position = ( (1 - gamma2) * in[outsideIndex + 2 % 3]->gl_Position ) + ( gamma2 * in[outsideIndex]->gl_Position );
+        //populate n->data
+        for(int j = 0; j < state.floats_per_vertex; j++){
+        
+        }
+}
 
     /*
     switch(face / 2){
@@ -319,7 +371,7 @@ float areaABC = (0.5)*( ( (v2[0] * v3[1]) - ( v3[0] *  v2[1]) )
 			  	state.image_color[(state.image_width * h) + (w)] = make_pixel(255 * out.output_color[0], 255 * out.output_color[1] ,255 * out.output_color[2]);
 			state.image_depth[(state.image_width * h) + (w)] = newz;			
 			    }//end if 
-		    
+		 delete df.data;   
 		}//end check if in triangle
 
 		//state.image_color[(state.image_width * h) + (w)] = make_pixel(255 * out.output_color[0], 255 * out.output_color[1] ,255 * out.output_color[2]);
