@@ -144,40 +144,67 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
     vec4 v2 = in[1]->gl_Position;
     vec4 v3 = in[2]->gl_Position;
 
-   
+    int sign = (face % 2) ? -1 : 1 ;
+    int index = face / 2;
+    int insideIndex;
 
-    if(face==6)
+    if((sign * v1[index] <= v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] <= v3[3]) )
     {
-        rasterize_triangle(state, in);
-        return;
-    
-    }else if(face == 5)
-    {
-	if((v1[2] < -v1[3]) && (v2[2] < -v2[3]) && (v3[2] < -v3[3]) ){
-            clip_triangle(state, in, face+1);                                                                                                                                                                              }
-         
-    }else if(face == 4){
-	if((v1[2] < v1[3]) && (v2[2] < v2[3]) && (v3[2] < v3[3]) ){
-            clip_triangle(state, in, face+1);                                                                                                                                                                              }
-         
-    }else if (face == 3) {
-	if((v1[1] < -v1[3]) && (v2[1] < -v2[3]) && (v3[1] < -v3[3]) ){
-            clip_triangle(state, in, face+1);                                                                                                                                                                              }
-         
-    }else if (face == 2) {
-	if((v1[1] < v1[3]) && (v2[1] < v2[3]) && (v3[1] < v3[3]) ){
-            clip_triangle(state, in, face+1);                                                                                                                                                                              }
-         
-    }else if (face == 1) {
-        if((v1[0] < -v1[3]) && (v2[0] < -v2[3]) && (v3[0] < -v3[3]) ){
-            clip_triangle(state, in, face+1);                                                                                                                                                                              }
-         
-    } else if (face == 0){
-	if((v1[0] < v1[3]) && (v2[0] < v2[3]) && (v3[0] < v3[3]) ){
-	    clip_triangle(state, in, face+1);
-	}
-        
+        clip_triangle(state, in, face + 1);
+    } 
+    else if((sign * v1[index] > v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] > v3[3])){
+
     }
+    else {
+	if( (sign * v1[index] <= v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] > v3[3])  ){
+		insideIndex = 0;
+	} //v1 inside
+	 else if ( (sign * v1[index] > v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] > v3[3]) ){
+		insideIndex = 1;
+	} //v2 insde
+        else if((sign * v1[index] > v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] <= v3[3])){
+		insideIndex = 2;
+   	}//v3 inside
+	
+    }
+
+    /*
+    switch(face / 2){
+    	case 0 : if((sign * v1[index] <= v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] <= v3[3]) )
+		 {
+			clip_triangle(state, in, face + 1);
+		 }  
+	break;
+	case 1 : 
+		 
+
+
+
+	break;
+
+	case 2 :
+	break; 
+	case 3 :
+	break;
+	
+	case 4 :
+	break;
+	case 5 :
+	break;
+	
+	case 6 : rasterize_triangle(state, in);
+		 return;
+	break;
+
+
+
+    } */
+
+
+
+
+   
+    
     //std::cout<<"TODO: implement clipping. (The current code passes the triangle through without clipping them.)"<<std::endl;
     //clip_triangle(state,in,face+1);
 }
