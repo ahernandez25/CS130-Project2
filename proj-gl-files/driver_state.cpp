@@ -147,6 +147,7 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
     int sign = (face % 2) ? -1 : 1 ;
     int index = face / 2;
     int insideIndex;
+    int notInside;
 
     if((sign * v1[index] <= v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] <= v3[3]) )
     {
@@ -158,6 +159,7 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
     else {
 	if( (sign * v1[index] <= v1[3]) && (sign * v2[index] > v2[3]) && (sign * v3[index] > v3[3])  ){
 		insideIndex = 0;
+		
 	} //v1 inside
 	 else if ( (sign * v1[index] > v1[3]) && (sign * v2[index] <= v2[3]) && (sign * v3[index] > v3[3]) ){
 		insideIndex = 1;
